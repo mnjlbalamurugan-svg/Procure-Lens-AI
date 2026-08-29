@@ -1,0 +1,30 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.db
+procurelens.db
+
+# Node
+node_modules/
+dist/
+build/
+.eslintcache
+
+# Local Env
+.env
+.env.local
+.env.*.local
+
+# Project Uploads
+uploads/
+backend/uploads/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
