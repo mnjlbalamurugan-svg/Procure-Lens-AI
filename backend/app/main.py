@@ -42,7 +42,17 @@ app = FastAPI(
 
 # Configure CORS
 cors_origins_raw = os.getenv("CORS_ORIGINS")
-origins = ["*"]  # Fallback
+default_origins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:3000",
+    "https://procure-lens-ai-frontend.onrender.com"
+]
+
+origins = default_origins
 
 if cors_origins_raw:
     try:
@@ -55,8 +65,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 # Register routes
