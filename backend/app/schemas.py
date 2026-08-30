@@ -189,3 +189,22 @@ class StructuredProposalData(BaseModel):
     additional_charges: List[str] = []
     missing_information: List[str] = []
     confidence_notes: List[str] = []
+
+
+# --- Auth Schemas ---
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class UserOut(BaseModel):
+    id: int
+    username: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+

@@ -8,13 +8,14 @@ import {
   Compass, 
   Database,
   ArrowLeft,
-  Activity
+  Activity,
+  LogOut
 } from 'lucide-react';
 import api from '../services/api';
 
 interface Project {
   id: number;
-  name: str;
+  name: string;
 }
 
 export default function Sidebar() {
@@ -23,6 +24,11 @@ export default function Sidebar() {
   const location = useLocation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProjectName, setCurrentProjectName] = useState<string>('Select Project');
+
+  const handleLogout = () => {
+    localStorage.removeItem('procure_token');
+    navigate('/login');
+  };
 
   useEffect(() => {
     // Fetch project list
@@ -110,6 +116,13 @@ export default function Sidebar() {
           <PlusCircle className="h-5 w-5 text-indigo-400" />
           <span>New Analysis</span>
         </Link>
+        <button 
+          onClick={handleLogout}
+          className="flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-red-955/20 hover:text-red-300 transition-all w-full text-left mt-1 cursor-pointer"
+        >
+          <LogOut className="h-5 w-5 text-red-450" />
+          <span>Logout</span>
+        </button>
       </nav>
 
       {/* Footer Status */}

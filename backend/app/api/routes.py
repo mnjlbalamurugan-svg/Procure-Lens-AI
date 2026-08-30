@@ -2,6 +2,7 @@ import os
 import shutil
 import json
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import fitz # To write PDFs for the demo creator
@@ -11,8 +12,50 @@ from .. import models, schemas
 from ..services.document_service import DocumentService
 from ..services.ai_service import AIService
 from ..utils.scoring_engine import ScoringEngine, parse_numeric
+from ..utils.auth import verify_password, create_access_token, decode_access_token
 
-router = APIRouter(prefix="/api")
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    token = credentials.credentials
+    payload = decode_access_token(token)
+    if not payload:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired authentication token. Please log in again."
+        )
+    username = payload.get("sub")
+    if not username:
+        raise HTTPException(
+            status_code=401,
+            detail="Token payload is invalid. Please log in again."
+        )
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="User not found. Please log in again."
+        )
+    return user
+
+auth_router = APIRouter(prefix="/api/auth")
+
+@auth_router.post("/login", response_model=schemas.Token)
+def login(login_data: schemas.UserLogin, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == login_data.username).first()
+    if not user or not verify_password(login_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid username or password"
+        )
+    access_token = create_access_token(data={"sub": user.username})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@auth_router.get("/me", response_model=schemas.UserOut)
+def get_me(current_user: models.User = Depends(get_current_user)):
+    return current_user
+
+router = APIRouter(prefix="/api", dependencies=[Depends(get_current_user)])
 
 # Ensure uploads directory exists
 UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "uploads"))

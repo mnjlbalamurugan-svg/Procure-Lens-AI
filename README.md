@@ -6,6 +6,19 @@ ProcureLens AI is a B2B SaaS web application designed to help organizations anal
 
 ---
 
+## Demo Login (Hackathon Judges)
+
+To evaluate the application, please use the following credentials on the login page:
+
+*   **URL**: [http://localhost:5173](http://localhost:5173) (Local) or the deployed frontend URL.
+*   **Username**: `judge`
+*   **Password**: `ProcureAI@2026`
+
+**To Log Out**: Click the **Logout** button at the bottom of the left sidebar on the project dashboard, or in the top-right header on the landing page.
+
+---
+
+
 ## Technical Architecture & Core Principles
 
 The platform follows a transparent **hybrid architecture**:

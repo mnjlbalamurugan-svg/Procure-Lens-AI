@@ -8,6 +8,11 @@ export default function LandingPage() {
   const [loadingDemo, setLoadingDemo] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handleLogout = () => {
+    localStorage.removeItem('procure_token');
+    navigate('/login');
+  };
+
   const handleTryDemo = async () => {
     setLoadingDemo(true);
     setError(null);
@@ -54,6 +59,12 @@ export default function LandingPage() {
             className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-indigo-600/20"
           >
             New Analysis
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="border border-slate-800 hover:bg-slate-900/50 text-slate-300 hover:text-slate-100 font-semibold text-sm px-4 py-2.5 rounded-lg transition-all cursor-pointer"
+          >
+            Logout
           </button>
         </div>
       </header>

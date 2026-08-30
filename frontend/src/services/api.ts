@@ -9,4 +9,28 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('procure_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Only redirect if we are not already trying to log in (to prevent loops)
+    if (error.response && error.response.status === 401 && !window.location.pathname.includes('/login')) {
+      localStorage.removeItem('procure_token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
+
+

@@ -13,6 +13,15 @@ from app import models
 client = TestClient(app)
 
 def test_workflow():
+    # Login first
+    login_response = client.post("/api/auth/login", json={
+        "username": "judge",
+        "password": "ProcureAI@2026"
+    })
+    assert login_response.status_code == 200, f"Login failed: {login_response.text}"
+    token = login_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
     # 1. Create a project
     project_payload = {
         "name": "Integration Laptop Project",
@@ -29,7 +38,7 @@ def test_workflow():
         ]
     }
     
-    response = client.post("/api/projects", json=project_payload)
+    response = client.post("/api/projects", json=project_payload, headers=headers)
     assert response.status_code == 200, f"Failed to create project: {response.text}"
     project = response.json()
     project_id = project["id"]
@@ -50,13 +59,14 @@ def test_workflow():
         upload_response = client.post(
             f"/api/projects/{project_id}/proposals/upload",
             data={"vendor_name": vendor_name},
-            files={"file": (filename, io.BytesIO(file_data), "application/pdf")}
+            files={"file": (filename, io.BytesIO(file_data), "application/pdf")},
+            headers=headers
         )
         assert upload_response.status_code == 200, f"Failed to upload {filename}: {upload_response.text}"
         print(f"Uploaded {filename} for {vendor_name}. Proposal ID: {upload_response.json()['proposal_id']}")
 
     # 3. Run Analysis
-    analyze_response = client.post(f"/api/projects/{project_id}/analyze")
+    analyze_response = client.post(f"/api/projects/{project_id}/analyze", headers=headers)
     assert analyze_response.status_code == 200, f"Analysis failed: {analyze_response.text}"
     print("Analysis finished successfully.")
 
@@ -68,9 +78,10 @@ def test_workflow():
         "delivery_weight": 10.0,
         "payment_weight": 10.0,
         "risk_weight": 5.0
-    })
+    }, headers=headers)
     assert comp_response.status_code == 200, f"Simulation failed: {comp_response.text}"
     results = comp_response.json()
+
     
     print("\n--- RESULTS PRIOR TO PRICE SWAP ---")
     for r in results:
@@ -125,13 +136,14 @@ def test_workflow():
     reupload_response = client.post(
         f"/api/projects/{project_id}/proposals/upload",
         data={"vendor_name": "Vendor 1"},
-        files={"file": ("vendor_1_custom_modified.pdf", io.BytesIO(file_data), "application/pdf")}
+        files={"file": ("vendor_1_custom_modified.pdf", io.BytesIO(file_data), "application/pdf")},
+        headers=headers
     )
     assert reupload_response.status_code == 200, f"Re-upload failed: {reupload_response.text}"
     print(f"Re-uploaded Vendor 1 with Price Rs. 70,000. Proposal ID: {reupload_response.json()['proposal_id']}")
 
     # Re-analyze
-    reanalyze_response = client.post(f"/api/projects/{project_id}/analyze")
+    reanalyze_response = client.post(f"/api/projects/{project_id}/analyze", headers=headers)
     assert reanalyze_response.status_code == 200, f"Re-analysis failed: {reanalyze_response.text}"
     
     # Recalculate
@@ -142,9 +154,10 @@ def test_workflow():
         "delivery_weight": 10.0,
         "payment_weight": 10.0,
         "risk_weight": 5.0
-    })
+    }, headers=headers)
     assert recalc_response.status_code == 200, f"Simulation failed: {recalc_response.text}"
     recalc_results = recalc_response.json()
+
     
     print("\n--- RESULTS AFTER PRICE SWAP (Vendor 1 is now Rs. 70,000) ---")
     for r in recalc_results:

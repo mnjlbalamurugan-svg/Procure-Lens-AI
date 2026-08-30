@@ -2,11 +2,35 @@ import os
 import json
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .database import engine, Base
+from .database import engine, Base, SessionLocal
 from .api import routes
 
 # Initialize tables
 Base.metadata.create_all(bind=engine)
+
+def seed_judge_user():
+    db = SessionLocal()
+    try:
+        from . import models
+        from .utils.auth import get_password_hash
+        
+        username = os.getenv("DEMO_USERNAME", "judge")
+        password = os.getenv("DEMO_PASSWORD", "ProcureAI@2026")
+        
+        user = db.query(models.User).filter(models.User.username == username).first()
+        if not user:
+            hashed = get_password_hash(password)
+            db_user = models.User(username=username, hashed_password=hashed)
+            db.add(db_user)
+            db.commit()
+            print(f"Demo user '{username}' seeded successfully.")
+    except Exception as e:
+        print(f"Error seeding demo user: {e}")
+    finally:
+        db.close()
+
+seed_judge_user()
+
 
 app = FastAPI(
     title="ProcureLens AI API",
@@ -36,7 +60,9 @@ app.add_middleware(
 )
 
 # Register routes
+app.include_router(routes.auth_router)
 app.include_router(routes.router)
+
 
 @app.get("/")
 def read_root():
